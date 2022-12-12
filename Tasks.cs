@@ -12,8 +12,6 @@ namespace GTFS_parser
 {
     public class Tasks
     {
-        DataTable Data = new DataTable();
-
         public TransitRealtime.FeedMessage DownloadGTFS(string type)
         {
             //var token = "token=eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJ0ZXN0Mi56dG0ucG96bmFuLnBsIiwiY29kZSI6MSwibG9naW4iOiJtaFRvcm8iLCJ0aW1lc3RhbXAiOjE1MTM5NDQ4MTJ9.ND6_VN06FZxRfgVylJghAoKp4zZv6_yZVBu_1-yahlo&";
@@ -29,66 +27,23 @@ namespace GTFS_parser
             }
         }
 
-        public void PrintGTFS(TransitRealtime.FeedMessage feed)
+        public void PrintData(DataTable data)
         {
-            for (int i = 0; i < feed.Entity.Count; i++)
+            foreach (DataRow row in data.Rows)
             {
-                Console.WriteLine($"{feed.Entity[i].TripUpdate.Vehicle.Label} | {feed.Entity[i].TripUpdate.StopTimeUpdate[0].Arrival.Delay}");
+                Console.WriteLine($"{row["brigade"]} | {row["geometry"]} | {row["speed"]} | {row["time"]}");
             }
         }
 
         public DataTable PrepareData(TransitRealtime.FeedMessage feed)
         {
-            Data = PrepareTable();
+            var handler = new DataHandler();
+            var data = new DataTable();
             for (int i = 0; i < feed.Entity.Count; i++)
             {
-                Data = FillTable(Data, feed.Entity[i]);
+                data = handler.FillTable(feed.Entity[i]);
             }
-            return Data;
-        }
-
-        private DataTable PrepareTable()
-        {
-            var table = Data;
-            table = AddColumn(table, "System.String", "trip_id");
-            table = AddColumn(table, "System.String", "line");
-            table = AddColumn(table, "System.String", "brigade");
-            table = AddColumn(table, "System.Double", "position_x");
-            table = AddColumn(table, "System.Double", "position_y");
-            table = AddColumn(table, "System.Double", "speed");
-            table = AddColumn(table, "System.DateTime", "time");
-            table = AddColumn(table, "System.Int32", "delay");
-            return table;
-        }
-
-        private DataTable AddColumn(DataTable table, string type, string name)
-        {
-            DataColumn column;
-            if (type == "SqlGeography")
-            {
-                column = new DataColumn(dataType: typeof(SqlGeography), columnName: name);
-            }
-            else
-            {
-                column = new DataColumn(dataType: Type.GetType(type), columnName: name);
-            }
-            table.Columns.Add(column);
-            return table;
-        }
-
-        private DataTable FillTable(DataTable table, TransitRealtime.FeedEntity obj)
-        {
-            var row = table.NewRow();
-            row["trip_id"] = obj.Vehicle.Trip.TripId;
-            row["line"] = obj.Vehicle.Trip.RouteId;
-            row["brigade"] = obj.Vehicle.Vehicle.Label;
-            row["position_x"] = obj.Vehicle.Position.Longitude;
-            row["position_y"] = obj.Vehicle.Position.Latitude;
-            row["speed"] = obj.Vehicle.Position.Speed;
-            DateTime date = new DateTime(1970, 1, 1, 0, 0, 0).ToLocalTime();
-            row["time"] = date.AddSeconds(obj.Vehicle.Timestamp);
-            table.Rows.Add(row);
-            return table;
+            return data;
         }
     }
 }
