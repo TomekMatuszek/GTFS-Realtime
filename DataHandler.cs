@@ -63,9 +63,9 @@ namespace GTFS_parser
             row["position_y"] = obj.Position.Latitude;
             row["speed"] = obj.Position.Speed;
             DateTime date = new DateTime(1970, 1, 1, 0, 0, 0).ToLocalTime().AddSeconds(obj.Timestamp);
-            date = RoundUp(date, TimeSpan.FromMinutes(1));
+            date = RoundTime(date, TimeSpan.FromSeconds(30));
             row["time"] = date;
-            row["timestamp"] = obj.Timestamp;
+            row["timestamp"] = obj.Timestamp + 3600;
             //row["delay"] = 0;
             var wkt = $"POINT({obj.Position.Longitude} {obj.Position.Latitude})";
             row["geometry"] = SqlGeography.STGeomFromText(new SqlChars(wkt.Replace(",", ".")), 4326);
@@ -82,8 +82,12 @@ namespace GTFS_parser
             return Data2;
         }
 
-        private DateTime RoundUp(DateTime dt, TimeSpan d)
+        private DateTime RoundTime(DateTime dt, TimeSpan d)
         {
+            /*var delta = dt.Ticks % d.Ticks;
+            bool roundUp = delta > d.Ticks / 2;
+            var offset = roundUp ? d.Ticks : 0;
+            return new DateTime(dt.Ticks + offset - delta, dt.Kind);*/
             return dt.AddTicks(-(dt.Ticks % d.Ticks));
             //return new DateTime((dt.Ticks + d.Ticks - 1) / d.Ticks * d.Ticks, dt.Kind);
         }

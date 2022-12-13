@@ -6,6 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Data.SqlClient;
 using System.Configuration;
+using System.Threading;
 
 namespace GTFS_parser
 {
@@ -16,6 +17,15 @@ namespace GTFS_parser
             Console.WriteLine("GTFS-RT data for public transport vehicles in Poznan ------------------------");
             SqlServerTypes.Utilities.LoadNativeAssemblies(AppDomain.CurrentDomain.BaseDirectory);
 
+            Run();
+            Thread.Sleep(30000);
+            Run();
+
+            //Console.ReadLine();
+        }
+
+        static void Run()
+        {
             var tasks = new Tasks();
             var vehiclePositions = tasks.DownloadGTFS("vehicle_positions");
             Console.WriteLine(vehiclePositions.Entity[0].ToString());
@@ -27,8 +37,6 @@ namespace GTFS_parser
 
             tasks.UploadData(results);
             tasks.PrintData(results);
-
-            //Console.ReadLine();
         }
     }
 }
