@@ -14,6 +14,7 @@ namespace GTFS_parser
         static void Main(string[] args)
         {
             Console.WriteLine("GTFS-RT data for public transport vehicles in Poznan ------------------------");
+            SqlServerTypes.Utilities.LoadNativeAssemblies(AppDomain.CurrentDomain.BaseDirectory);
 
             var tasks = new Tasks();
             var vehiclePositions = tasks.DownloadGTFS("vehicle_positions");
