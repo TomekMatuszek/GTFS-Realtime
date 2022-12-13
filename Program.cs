@@ -5,6 +5,7 @@ using System.Data;
 using System.Text;
 using System.Threading.Tasks;
 using System.Data.SqlClient;
+using System.Configuration;
 
 namespace GTFS_parser
 {
@@ -15,11 +16,15 @@ namespace GTFS_parser
             Console.WriteLine("GTFS-RT data for public transport vehicles in Poznan ------------------------");
 
             var tasks = new Tasks();
-            var feed = tasks.DownloadGTFS("vehicle_positions");
+            var vehiclePositions = tasks.DownloadGTFS("vehicle_positions");
+            Console.WriteLine(vehiclePositions.Entity[0].ToString());
+            var tripUpdates = tasks.DownloadGTFS("trip_updates");
+            Console.WriteLine(tripUpdates.Entity[0].ToString());
 
-            var results = tasks.PrepareData(feed);
+            var results = tasks.PrepareData(vehiclePositions, tripUpdates);
             Console.WriteLine(results.Rows.Count);
-            Console.WriteLine(feed.Entity[0].ToString());
+
+            tasks.UploadData(results);
             tasks.PrintData(results);
 
             Console.ReadLine();

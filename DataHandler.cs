@@ -11,16 +11,19 @@ namespace GTFS_parser
 {
     public class DataHandler
     {
-        DataTable Data = new DataTable();
+        DataTable Data1 = new DataTable();
+        DataTable Data2 = new DataTable();
 
         public DataHandler()
         {
-            Data = PrepareTable();
+            Data1 = PrepareTable();
+            Data2 = PrepareTable();
         }
 
-        private DataTable PrepareTable()
+        public DataTable PrepareTable()
         {
-            var table = Data;
+            var table = new DataTable();
+            table = AddColumn(table, "System.Int32", "fid");
             table = AddColumn(table, "System.String", "trip_id");
             table = AddColumn(table, "System.String", "line");
             table = AddColumn(table, "System.String", "brigade");
@@ -28,6 +31,7 @@ namespace GTFS_parser
             table = AddColumn(table, "System.Double", "position_y");
             table = AddColumn(table, "System.Double", "speed");
             table = AddColumn(table, "System.DateTime", "time");
+            table = AddColumn(table, "System.Int32", "timestamp");
             table = AddColumn(table, "System.Int32", "delay");
             table = AddColumn(table, "SqlGeography", "geometry");
             return table;
@@ -48,22 +52,33 @@ namespace GTFS_parser
             return table;
         }
 
-        public DataTable FillTable(TransitRealtime.FeedEntity obj)
+        public DataTable FillTable(TransitRealtime.VehiclePosition obj)
         {
-            var row = Data.NewRow();
-            row["trip_id"] = obj.Vehicle.Trip.TripId;
-            row["line"] = obj.Vehicle.Trip.RouteId;
-            row["brigade"] = obj.Vehicle.Vehicle.Label;
-            row["position_x"] = obj.Vehicle.Position.Longitude;
-            row["position_y"] = obj.Vehicle.Position.Latitude;
-            row["speed"] = obj.Vehicle.Position.Speed;
+            var row = Data1.NewRow();
+            row["fid"] = 0;
+            row["trip_id"] = obj.Trip.TripId;
+            row["line"] = obj.Trip.RouteId;
+            row["brigade"] = obj.Vehicle.Label;
+            row["position_x"] = obj.Position.Longitude;
+            row["position_y"] = obj.Position.Latitude;
+            row["speed"] = obj.Position.Speed;
             DateTime date = new DateTime(1970, 1, 1, 0, 0, 0).ToLocalTime();
-            row["time"] = date.AddSeconds(obj.Vehicle.Timestamp);
-            row["delay"] = 0;
-            var wkt = $"POINT({obj.Vehicle.Position.Longitude} {obj.Vehicle.Position.Latitude})";
+            row["time"] = date.AddSeconds(obj.Timestamp);
+            row["timestamp"] = obj.Timestamp;
+            //row["delay"] = 0;
+            var wkt = $"POINT({obj.Position.Longitude} {obj.Position.Latitude})";
             row["geometry"] = SqlGeography.STGeomFromText(new SqlChars(wkt.Replace(",", ".")), 4326);
-            Data.Rows.Add(row);
-            return Data;
+            Data1.Rows.Add(row);
+            return Data1;
+        }
+
+        public DataTable FillTable(TransitRealtime.TripUpdate obj)
+        {
+            var row = Data2.NewRow();
+            row["trip_id"] = obj.Trip.TripId;
+            row["delay"] = obj.StopTimeUpdate[0].Arrival.Delay;
+            Data2.Rows.Add(row);
+            return Data2;
         }
     }
 }
