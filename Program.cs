@@ -28,7 +28,7 @@ namespace GTFS_parser
             tasks.UploadData(results);
             tasks.PrintData(results);
 
-            Console.ReadLine();
+            //Console.ReadLine();
         }
     }
 }
