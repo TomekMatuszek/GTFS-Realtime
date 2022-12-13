@@ -15,7 +15,6 @@ namespace GTFS_parser
     {
         public TransitRealtime.FeedMessage DownloadGTFS(string type)
         {
-            //var token = "token=eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJ0ZXN0Mi56dG0ucG96bmFuLnBsIiwiY29kZSI6MSwibG9naW4iOiJtaFRvcm8iLCJ0aW1lc3RhbXAiOjE1MTM5NDQ4MTJ9.ND6_VN06FZxRfgVylJghAoKp4zZv6_yZVBu_1-yahlo&";
             var HttpRequest = (HttpWebRequest)WebRequest.Create($"https://www.ztm.poznan.pl/pl/dla-deweloperow/getGtfsRtFile/?file={type}.pb");
             using (var response = (HttpWebResponse)HttpRequest.GetResponse())
             {
@@ -36,7 +35,7 @@ namespace GTFS_parser
             }
         }
 
-        public DataTable PrepareData(TransitRealtime.FeedMessage vehiclePositions, TransitRealtime.FeedMessage tripUpdates)
+        public DataTable PrepareData(TransitRealtime.FeedMessage vehiclePositions, TransitRealtime.FeedMessage tripUpdates = null)
         {
             var handler = new DataHandler();
             var data1 = new DataTable();
@@ -45,16 +44,20 @@ namespace GTFS_parser
             {
                 data1 = handler.FillTable(vehiclePositions.Entity[i].Vehicle);
             }
-            for (int j = 0; j < tripUpdates.Entity.Count; j++)
+
+            DataTable dataMerged;
+            if (tripUpdates != null)
             {
-                data2 = handler.FillTable(tripUpdates.Entity[j].TripUpdate);
-            }
-            var dataMerged = handler.PrepareTable();
-            
-            var results = (from d1 in data1.AsEnumerable()
-                           join d2 in data2.AsEnumerable() on d1.Field<string>("trip_id") equals d2.Field<string>("trip_id")
-                           select dataMerged.LoadDataRow(new object[]
-                           {
+                for (int j = 0; j < tripUpdates.Entity.Count; j++)
+                {
+                    data2 = handler.FillTable(tripUpdates.Entity[j].TripUpdate);
+                }
+                dataMerged = handler.PrepareTable();
+
+                var results = (from d1 in data1.AsEnumerable()
+                               join d2 in data2.AsEnumerable() on d1.Field<string>("trip_id") equals d2.Field<string>("trip_id")
+                               select dataMerged.LoadDataRow(new object[]
+                               {
                                 d1.Field<int>("fid"),
                                 d1.Field<string>("trip_id"),
                                 d1.Field<string>("line"),
@@ -66,8 +69,13 @@ namespace GTFS_parser
                                 d1.Field<int>("timestamp"),
                                 d2.Field<int>("delay"),
                                 d1.Field<SqlGeography>("geometry")
-                           }, false)).CopyToDataTable();
-            
+                               }, false)).CopyToDataTable();
+            }
+            else
+            {
+                dataMerged = data1;
+            }
+ 
             return dataMerged;
         }
 

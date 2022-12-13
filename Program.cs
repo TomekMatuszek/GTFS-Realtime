@@ -20,7 +20,6 @@ namespace GTFS_parser
             Run();
             Thread.Sleep(30000);
             Run();
-
             //Console.ReadLine();
         }
 

@@ -11,13 +11,13 @@ namespace GTFS_parser
 {
     public class DataHandler
     {
-        DataTable Data1 = new DataTable();
-        DataTable Data2 = new DataTable();
+        DataTable VehicleData = new DataTable();
+        DataTable TripsData = new DataTable();
 
         public DataHandler()
         {
-            Data1 = PrepareTable();
-            Data2 = PrepareTable();
+            VehicleData = PrepareTable();
+            TripsData = PrepareTable();
         }
 
         public DataTable PrepareTable()
@@ -54,7 +54,7 @@ namespace GTFS_parser
 
         public DataTable FillTable(TransitRealtime.VehiclePosition obj)
         {
-            var row = Data1.NewRow();
+            var row = VehicleData.NewRow();
             row["fid"] = 0;
             row["trip_id"] = obj.Trip.TripId;
             row["line"] = obj.Trip.RouteId;
@@ -66,20 +66,20 @@ namespace GTFS_parser
             date = RoundTime(date, TimeSpan.FromSeconds(30));
             row["time"] = date;
             row["timestamp"] = obj.Timestamp + 3600;
-            //row["delay"] = 0;
+            row["delay"] = 0;
             var wkt = $"POINT({obj.Position.Longitude} {obj.Position.Latitude})";
             row["geometry"] = SqlGeography.STGeomFromText(new SqlChars(wkt.Replace(",", ".")), 4326);
-            Data1.Rows.Add(row);
-            return Data1;
+            VehicleData.Rows.Add(row);
+            return VehicleData;
         }
 
         public DataTable FillTable(TransitRealtime.TripUpdate obj)
         {
-            var row = Data2.NewRow();
+            var row = TripsData.NewRow();
             row["trip_id"] = obj.Trip.TripId;
             row["delay"] = obj.StopTimeUpdate[0].Arrival.Delay;
-            Data2.Rows.Add(row);
-            return Data2;
+            TripsData.Rows.Add(row);
+            return TripsData;
         }
 
         private DateTime RoundTime(DateTime dt, TimeSpan d)
