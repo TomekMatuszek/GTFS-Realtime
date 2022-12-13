@@ -36,18 +36,18 @@ namespace GTFS_parser
             }
         }
 
-        public DataTable PrepareData(TransitRealtime.FeedMessage vehicle_positions, TransitRealtime.FeedMessage trip_updates)
+        public DataTable PrepareData(TransitRealtime.FeedMessage vehiclePositions, TransitRealtime.FeedMessage tripUpdates)
         {
             var handler = new DataHandler();
             var data1 = new DataTable();
             var data2 = new DataTable();
-            for (int i = 0; i < vehicle_positions.Entity.Count; i++)
+            for (int i = 0; i < vehiclePositions.Entity.Count; i++)
             {
-                data1 = handler.FillTable(vehicle_positions.Entity[i].Vehicle);
+                data1 = handler.FillTable(vehiclePositions.Entity[i].Vehicle);
             }
-            for (int j = 0; j < trip_updates.Entity.Count; j++)
+            for (int j = 0; j < tripUpdates.Entity.Count; j++)
             {
-                data2 = handler.FillTable(trip_updates.Entity[j].TripUpdate);
+                data2 = handler.FillTable(tripUpdates.Entity[j].TripUpdate);
             }
             var dataMerged = handler.PrepareTable();
             
