@@ -62,8 +62,9 @@ namespace GTFS_parser
             row["position_x"] = obj.Position.Longitude;
             row["position_y"] = obj.Position.Latitude;
             row["speed"] = obj.Position.Speed;
-            DateTime date = new DateTime(1970, 1, 1, 0, 0, 0).ToLocalTime();
-            row["time"] = date.AddSeconds(obj.Timestamp);
+            DateTime date = new DateTime(1970, 1, 1, 0, 0, 0).ToLocalTime().AddSeconds(obj.Timestamp);
+            date = RoundUp(date, TimeSpan.FromMinutes(1));
+            row["time"] = date;
             row["timestamp"] = obj.Timestamp;
             //row["delay"] = 0;
             var wkt = $"POINT({obj.Position.Longitude} {obj.Position.Latitude})";
@@ -79,6 +80,12 @@ namespace GTFS_parser
             row["delay"] = obj.StopTimeUpdate[0].Arrival.Delay;
             Data2.Rows.Add(row);
             return Data2;
+        }
+
+        private DateTime RoundUp(DateTime dt, TimeSpan d)
+        {
+            return dt.AddTicks(-(dt.Ticks % d.Ticks));
+            //return new DateTime((dt.Ticks + d.Ticks - 1) / d.Ticks * d.Ticks, dt.Kind);
         }
     }
 }
