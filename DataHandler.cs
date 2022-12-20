@@ -63,7 +63,7 @@ namespace GTFS_parser
             row["position_y"] = obj.Position.Latitude;
             row["speed"] = obj.Position.Speed;
             DateTime date = new DateTime(1970, 1, 1, 0, 0, 0).ToLocalTime().AddSeconds(obj.Timestamp);
-            date = RoundTime(date, TimeSpan.FromSeconds(30));
+            date = RoundTime(date, TimeSpan.FromSeconds(15));
             row["time"] = date;
             row["timestamp"] = obj.Timestamp + 3600;
             row["delay"] = 0;

@@ -17,9 +17,12 @@ namespace GTFS_parser
             Console.WriteLine("GTFS-RT data for public transport vehicles in Poznan ------------------------");
             SqlServerTypes.Utilities.LoadNativeAssemblies(AppDomain.CurrentDomain.BaseDirectory);
 
-            Run();
-            Thread.Sleep(30000);
-            Run();
+            for (int i = 0; i < 4; i++)
+            {
+                Run();
+                Thread.Sleep(15000);
+            }
+
             //Console.ReadLine();
         }
 
