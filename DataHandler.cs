@@ -30,6 +30,9 @@ namespace GTFS_parser
             table = AddColumn(table, "System.Double", "position_x");
             table = AddColumn(table, "System.Double", "position_y");
             table = AddColumn(table, "System.Double", "speed");
+            table = AddColumn(table, "System.DateTime", "time_prev");
+            table = AddColumn(table, "System.DateTime", "time_req");
+            table = AddColumn(table, "System.DateTime", "time_org");
             table = AddColumn(table, "System.DateTime", "time");
             table = AddColumn(table, "System.Int32", "timestamp");
             table = AddColumn(table, "System.Int32", "delay");
@@ -62,8 +65,35 @@ namespace GTFS_parser
             row["position_x"] = obj.Position.Longitude;
             row["position_y"] = obj.Position.Latitude;
             row["speed"] = obj.Position.Speed;
+            row["time_prev"] = DateTime.Now;
+            row["time_req"] = DateTime.Now;
             DateTime date = new DateTime(1970, 1, 1, 0, 0, 0).ToLocalTime().AddSeconds(obj.Timestamp);
-            date = RoundTime(date, TimeSpan.FromSeconds(15));
+            row["time_org"] = date;
+            date = RoundTime(date, TimeSpan.FromSeconds(15), date.AddSeconds(-15));
+            row["time"] = date;
+            row["timestamp"] = obj.Timestamp + 3600;
+            row["delay"] = 0;
+            var wkt = $"POINT({obj.Position.Longitude} {obj.Position.Latitude})";
+            row["geometry"] = SqlGeography.STGeomFromText(new SqlChars(wkt.Replace(",", ".")), 4326);
+            VehicleData.Rows.Add(row);
+            return VehicleData;
+        }
+
+        public DataTable FillTable(TransitRealtime.VehiclePosition obj, DataRow prevRecord)
+        {
+            var row = VehicleData.NewRow();
+            row["fid"] = 0;
+            row["trip_id"] = obj.Trip.TripId;
+            row["line"] = obj.Trip.RouteId;
+            row["brigade"] = obj.Vehicle.Label;
+            row["position_x"] = obj.Position.Longitude;
+            row["position_y"] = obj.Position.Latitude;
+            row["speed"] = obj.Position.Speed;
+            row["time_prev"] = prevRecord["time"];
+            row["time_req"] = DateTime.Now;
+            DateTime date = new DateTime(1970, 1, 1, 0, 0, 0).ToLocalTime().AddSeconds(obj.Timestamp);
+            row["time_org"] = date;
+            date = RoundTime(date, TimeSpan.FromSeconds(15), DateTime.Parse(prevRecord["time"].ToString()));
             row["time"] = date;
             row["timestamp"] = obj.Timestamp + 3600;
             row["delay"] = 0;
@@ -82,14 +112,28 @@ namespace GTFS_parser
             return TripsData;
         }
 
-        private DateTime RoundTime(DateTime dt, TimeSpan d)
+        private DateTime RoundTime(DateTime dt, TimeSpan d, DateTime prev)
         {
+            var delta = dt.Ticks % d.Ticks;
+            var rounded = new DateTime(dt.Ticks - delta, dt.Kind);
+            TimeSpan diff = rounded - prev;
+            if (rounded == prev)
+            {
+                rounded = rounded.AddSeconds(15);
+            }
+            else if (diff.Seconds > 15)
+            {
+                rounded = rounded.AddSeconds(-15);
+            }
+
+            return rounded;
+
             /*var delta = dt.Ticks % d.Ticks;
             bool roundUp = delta > d.Ticks / 2;
             var offset = roundUp ? d.Ticks : 0;
             return new DateTime(dt.Ticks + offset - delta, dt.Kind);*/
-            return dt.AddTicks(-(dt.Ticks % d.Ticks));
-            //return new DateTime((dt.Ticks + d.Ticks - 1) / d.Ticks * d.Ticks, dt.Kind);
+            
+            //return dt.AddTicks(-(dt.Ticks % d.Ticks));
         }
     }
 }

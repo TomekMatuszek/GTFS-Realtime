@@ -17,18 +17,22 @@ namespace GTFS_parser
             Console.WriteLine("GTFS-RT data for public transport vehicles in Poznan ------------------------");
             SqlServerTypes.Utilities.LoadNativeAssemblies(AppDomain.CurrentDomain.BaseDirectory);
 
+            var oldResults = new DataTable();
             for (int i = 0; i < 4; i++)
             {
-                Run();
-                Thread.Sleep(15000);
+                oldResults = Run(oldResults);
+                if (i < 3)
+                {
+                    Thread.Sleep(15000);
+                }
             }
 
             //Console.ReadLine();
         }
 
-        static void Run()
+        static DataTable Run(DataTable oldResults)
         {
-            var tasks = new Tasks();
+            var tasks = new Tasks(oldResults);
             var vehiclePositions = tasks.DownloadGTFS("vehicle_positions");
             Console.WriteLine(vehiclePositions.Entity[0].ToString());
             var tripUpdates = tasks.DownloadGTFS("trip_updates");
@@ -39,6 +43,8 @@ namespace GTFS_parser
 
             tasks.UploadData(results);
             tasks.PrintData(results);
+
+            return results;
         }
     }
 }

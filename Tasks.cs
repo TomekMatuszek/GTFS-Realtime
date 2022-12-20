@@ -13,6 +13,13 @@ namespace GTFS_parser
 {
     public class Tasks
     {
+        DataTable OldData;
+
+        public Tasks(DataTable oldData)
+        {
+            OldData = oldData;
+        }
+        
         public TransitRealtime.FeedMessage DownloadGTFS(string type)
         {
             var HttpRequest = (HttpWebRequest)WebRequest.Create($"https://www.ztm.poznan.pl/pl/dla-deweloperow/getGtfsRtFile/?file={type}.pb");
@@ -42,7 +49,18 @@ namespace GTFS_parser
             var data2 = new DataTable();
             for (int i = 0; i < vehiclePositions.Entity.Count; i++)
             {
-                data1 = handler.FillTable(vehiclePositions.Entity[i].Vehicle);
+                try
+                {
+                    data1 = handler.FillTable(vehiclePositions.Entity[i].Vehicle, OldData.Select($"trip_id = '{vehiclePositions.Entity[i].Vehicle.Trip.TripId}'")[0]);
+                }
+                catch (System.Data.EvaluateException)
+                {
+                    data1 = handler.FillTable(vehiclePositions.Entity[i].Vehicle);
+                }
+                catch (System.IndexOutOfRangeException)
+                {
+                    data1 = handler.FillTable(vehiclePositions.Entity[i].Vehicle);
+                }
             }
 
             DataTable dataMerged;
@@ -65,6 +83,9 @@ namespace GTFS_parser
                                 d1.Field<double>("position_x"),
                                 d1.Field<double>("position_y"),
                                 d1.Field<double>("speed"),
+                                d1.Field<DateTime>("time_prev"),
+                                d1.Field<DateTime>("time_req"),
+                                d1.Field<DateTime>("time_org"),
                                 d1.Field<DateTime>("time"),
                                 d1.Field<int>("timestamp"),
                                 d2.Field<int>("delay"),
