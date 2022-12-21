@@ -20,10 +20,12 @@ namespace GTFS_parser
             var oldResults = new DataTable();
             for (int i = 0; i < 4; i++)
             {
+                var t1 = DateTime.Now;
                 oldResults = Run(oldResults);
+                var t2 = DateTime.Now;
                 if (i < 3)
                 {
-                    Thread.Sleep(15000);
+                    Thread.Sleep(15000 - (t1 - t2).Milliseconds);
                 }
             }
 
