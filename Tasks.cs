@@ -53,11 +53,11 @@ namespace GTFS_parser
                 {
                     data1 = handler.FillTable(vehiclePositions.Entity[i].Vehicle, OldData.Select($"trip_id = '{vehiclePositions.Entity[i].Vehicle.Trip.TripId}'")[0]);
                 }
-                catch (System.Data.EvaluateException)
+                catch (EvaluateException)
                 {
                     data1 = handler.FillTable(vehiclePositions.Entity[i].Vehicle);
                 }
-                catch (System.IndexOutOfRangeException)
+                catch (IndexOutOfRangeException)
                 {
                     data1 = handler.FillTable(vehiclePositions.Entity[i].Vehicle);
                 }
