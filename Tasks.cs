@@ -38,7 +38,7 @@ namespace GTFS_parser
         {
             foreach (DataRow row in data.Rows)
             {
-                Console.WriteLine($"Line: {row["brigade"]} | Position: {row["geometry"]} | Speed: {row["speed"]} | {row["time"]} | Delay: {row["delay"]}");
+                Console.WriteLine($"Line: {row["brigade"]} | Position: {row["geometry"]} | Speed: {row["speed"]} | {row["time"]} | Delay: {row["delay"]} ({row["delay_change"]})");
             }
         }
 
@@ -68,7 +68,18 @@ namespace GTFS_parser
             {
                 for (int j = 0; j < tripUpdates.Entity.Count; j++)
                 {
-                    data2 = handler.FillTable(tripUpdates.Entity[j].TripUpdate);
+                    try
+                    {
+                        data2 = handler.FillTable(tripUpdates.Entity[j].TripUpdate, OldData.Select($"trip_id = '{vehiclePositions.Entity[j].Vehicle.Trip.TripId}'")[0]);
+                    }
+                    catch (EvaluateException)
+                    {
+                        data2 = handler.FillTable(tripUpdates.Entity[j].TripUpdate);
+                    }
+                    catch (IndexOutOfRangeException)
+                    {
+                        data2 = handler.FillTable(tripUpdates.Entity[j].TripUpdate);
+                    }
                 }
                 dataMerged = handler.PrepareTable();
 
@@ -80,15 +91,18 @@ namespace GTFS_parser
                                 d1.Field<string>("trip_id"),
                                 d1.Field<string>("line"),
                                 d1.Field<string>("brigade"),
+                                d1.Field<string>("status"),
                                 d1.Field<double>("position_x"),
                                 d1.Field<double>("position_y"),
                                 d1.Field<double>("speed"),
+                                d1.Field<string>("stop_seq"),
                                 d1.Field<DateTime>("time_prev"),
                                 d1.Field<DateTime>("time_req"),
                                 d1.Field<DateTime>("time_org"),
                                 d1.Field<DateTime>("time"),
                                 d1.Field<int>("timestamp"),
                                 d2.Field<int>("delay"),
+                                d2.Field<int>("delay_change"),
                                 d1.Field<SqlGeography>("geometry")
                                }, false)).CopyToDataTable();
             }
@@ -107,7 +121,7 @@ namespace GTFS_parser
                 cnn.Open();
                 using (var bulkcopy = new SqlBulkCopy(cnn))
                 {
-                    bulkcopy.DestinationTableName = "records";
+                    bulkcopy.DestinationTableName = "records_test";
                     bulkcopy.WriteToServer(data);
                     bulkcopy.Close();
                 }

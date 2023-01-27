@@ -27,15 +27,18 @@ namespace GTFS_parser
             table = AddColumn(table, "System.String", "trip_id");
             table = AddColumn(table, "System.String", "line");
             table = AddColumn(table, "System.String", "brigade");
+            table = AddColumn(table, "System.String", "status");
             table = AddColumn(table, "System.Double", "position_x");
             table = AddColumn(table, "System.Double", "position_y");
             table = AddColumn(table, "System.Double", "speed");
+            table = AddColumn(table, "System.String", "stop_seq");
             table = AddColumn(table, "System.DateTime", "time_prev");
             table = AddColumn(table, "System.DateTime", "time_req");
             table = AddColumn(table, "System.DateTime", "time_org");
             table = AddColumn(table, "System.DateTime", "time");
             table = AddColumn(table, "System.Int32", "timestamp");
             table = AddColumn(table, "System.Int32", "delay");
+            table = AddColumn(table, "System.Int32", "delay_change");
             table = AddColumn(table, "SqlGeography", "geometry");
             return table;
         }
@@ -62,9 +65,11 @@ namespace GTFS_parser
             row["trip_id"] = obj.Trip.TripId;
             row["line"] = obj.Trip.RouteId;
             row["brigade"] = obj.Vehicle.Label;
+            row["status"] = obj.CurrentStatus;
             row["position_x"] = obj.Position.Longitude;
             row["position_y"] = obj.Position.Latitude;
             row["speed"] = obj.Position.Speed;
+            row["stop_seq"] = obj.CurrentStopSequence;
             row["time_prev"] = DateTime.Now;
             row["time_req"] = DateTime.Now;
             DateTime date = new DateTime(1970, 1, 1, 0, 0, 0).ToLocalTime().AddSeconds(obj.Timestamp);
@@ -73,6 +78,7 @@ namespace GTFS_parser
             row["time"] = date;
             row["timestamp"] = obj.Timestamp + 3600;
             row["delay"] = 0;
+            row["delay_change"] = 0;
             var wkt = $"POINT({obj.Position.Longitude} {obj.Position.Latitude})";
             row["geometry"] = SqlGeography.STGeomFromText(new SqlChars(wkt.Replace(",", ".")), 4326);
             VehicleData.Rows.Add(row);
@@ -86,9 +92,11 @@ namespace GTFS_parser
             row["trip_id"] = obj.Trip.TripId;
             row["line"] = obj.Trip.RouteId;
             row["brigade"] = obj.Vehicle.Label;
+            row["status"] = obj.CurrentStatus;
             row["position_x"] = obj.Position.Longitude;
             row["position_y"] = obj.Position.Latitude;
             row["speed"] = obj.Position.Speed;
+            row["stop_seq"] = obj.CurrentStopSequence;
             row["time_prev"] = prevRecord["time"];
             row["time_req"] = DateTime.Now;
             DateTime date = new DateTime(1970, 1, 1, 0, 0, 0).ToLocalTime().AddSeconds(obj.Timestamp);
@@ -97,6 +105,7 @@ namespace GTFS_parser
             row["time"] = date;
             row["timestamp"] = obj.Timestamp + 3600;
             row["delay"] = 0;
+            row["delay_change"] = 0;
             var wkt = $"POINT({obj.Position.Longitude} {obj.Position.Latitude})";
             row["geometry"] = SqlGeography.STGeomFromText(new SqlChars(wkt.Replace(",", ".")), 4326);
             VehicleData.Rows.Add(row);
@@ -108,6 +117,17 @@ namespace GTFS_parser
             var row = TripsData.NewRow();
             row["trip_id"] = obj.Trip.TripId;
             row["delay"] = obj.StopTimeUpdate[0].Arrival.Delay;
+            row["delay_change"] = 0;
+            TripsData.Rows.Add(row);
+            return TripsData;
+        }
+
+        public DataTable FillTable(TransitRealtime.TripUpdate obj, DataRow prevRecord)
+        {
+            var row = TripsData.NewRow();
+            row["trip_id"] = obj.Trip.TripId;
+            row["delay"] = obj.StopTimeUpdate[0].Arrival.Delay;
+            row["delay_change"] = obj.StopTimeUpdate[0].Arrival.Delay - (int)prevRecord["delay"];
             TripsData.Rows.Add(row);
             return TripsData;
         }
