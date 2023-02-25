@@ -23,12 +23,12 @@ namespace GTFS_parser
             var oldResults = new DataTable();
             for (int i = 0; i < minutes; i++)
             {
-                for (int j = 0; j < 4; j++)
+                for (int j = 0; j < (60 / seconds); j++)
                 {
                     var t1 = DateTime.Now;
                     oldResults = Run(oldResults);
                     var t2 = DateTime.Now;
-                    if (i < (minutes - 1) | j < 3)
+                    if (i < (minutes - 1) | j < ((60 / seconds) - 1))
                     {
                         Thread.Sleep((seconds * 1000) - (t2 - t1).Milliseconds);
                     }
