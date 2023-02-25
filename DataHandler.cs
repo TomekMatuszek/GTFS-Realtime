@@ -37,9 +37,10 @@ namespace GTFS_parser
             table = AddColumn(table, "System.DateTime", "time_org");
             table = AddColumn(table, "System.DateTime", "time");
             table = AddColumn(table, "System.Int32", "timestamp");
+            table = AddColumn(table, "System.Double", "distance");
             table = AddColumn(table, "System.Int32", "delay");
             table = AddColumn(table, "System.Int32", "delay_change");
-            table = AddColumn(table, "SqlGeography", "geometry");
+            table = AddColumn(table, "SqlGeography", "geometry"); 
             return table;
         }
 
@@ -81,6 +82,7 @@ namespace GTFS_parser
             row["delay_change"] = 0;
             var wkt = $"POINT({obj.Position.Longitude} {obj.Position.Latitude})";
             row["geometry"] = SqlGeography.STGeomFromText(new SqlChars(wkt.Replace(",", ".")), 4326);
+            row["distance"] = 0;
             VehicleData.Rows.Add(row);
             return VehicleData;
         }
@@ -108,6 +110,9 @@ namespace GTFS_parser
             row["delay_change"] = 0;
             var wkt = $"POINT({obj.Position.Longitude} {obj.Position.Latitude})";
             row["geometry"] = SqlGeography.STGeomFromText(new SqlChars(wkt.Replace(",", ".")), 4326);
+            row["distance"] = double.Parse(
+                    ( (SqlGeography)row["geometry"] ).STDistance( (SqlGeography)prevRecord["geometry"] ).ToString()
+                );
             VehicleData.Rows.Add(row);
             return VehicleData;
         }

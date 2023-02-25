@@ -8,6 +8,7 @@ using System.Data;
 using System.Data.SqlClient;
 using Microsoft.SqlServer.Types;
 using System.Configuration;
+using System.Data.SqlTypes;
 
 namespace GTFS_parser
 {
@@ -38,7 +39,7 @@ namespace GTFS_parser
         {
             foreach (DataRow row in data.Rows)
             {
-                Console.WriteLine($"Line: {row["brigade"]} | Position: {row["geometry"]} | Speed: {row["speed"]} | {row["time"]} | Delay: {row["delay"]} ({row["delay_change"]})");
+                Console.WriteLine($"Line: {row["brigade"]} | Position: {row["geometry"]} | Speed: {row["speed"]} | {row["time"]} | Delay: {row["delay"]} ({row["delay_change"]}) | Distance: {row["distance"]}");
             }
         }
 
@@ -101,6 +102,7 @@ namespace GTFS_parser
                                 d1.Field<DateTime>("time_org"),
                                 d1.Field<DateTime>("time"),
                                 d1.Field<int>("timestamp"),
+                                d1.Field<double>("distance"),
                                 d2.Field<int>("delay"),
                                 d2.Field<int>("delay_change"),
                                 d1.Field<SqlGeography>("geometry")

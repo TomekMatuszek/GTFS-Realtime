@@ -13,6 +13,7 @@ time_req DateTime,
 time_org DateTime,
 time DateTime,
 timestamp int,
+distance real,
 delay int,
 delay_change int,
 geom geography);
