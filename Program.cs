@@ -42,15 +42,15 @@ namespace GTFS_parser
         {
             var tasks = new Tasks(oldResults);
             var vehiclePositions = tasks.DownloadGTFS("vehicle_positions");
-            Console.WriteLine(vehiclePositions.Entity[0].ToString());
+            //Console.WriteLine(vehiclePositions.Entity[0].ToString());
             var tripUpdates = tasks.DownloadGTFS("trip_updates");
-            Console.WriteLine(tripUpdates.Entity[0].ToString());
+            //Console.WriteLine(tripUpdates.Entity[0].ToString());
 
             var results = tasks.PrepareData(vehiclePositions, tripUpdates);
             Console.WriteLine(results.Rows.Count);
 
-            tasks.UploadData(results);
             tasks.PrintData(results);
+            tasks.UploadData(results);
 
             return results;
         }
