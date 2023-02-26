@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace GTFS_parser
 {
-    public class DataHandler
+    public class DataHandler : TableBuilder
     {
         DataTable VehicleData = new DataTable();
         DataTable TripsData = new DataTable();
@@ -20,45 +20,6 @@ namespace GTFS_parser
             TripsData = PrepareTable();
         }
 
-        public DataTable PrepareTable()
-        {
-            var table = new DataTable();
-            table = AddColumn(table, "System.Int32", "fid");
-            table = AddColumn(table, "System.String", "trip_id");
-            table = AddColumn(table, "System.String", "line");
-            table = AddColumn(table, "System.String", "brigade");
-            table = AddColumn(table, "System.String", "status");
-            table = AddColumn(table, "System.Double", "position_x");
-            table = AddColumn(table, "System.Double", "position_y");
-            table = AddColumn(table, "System.Double", "speed");
-            table = AddColumn(table, "System.String", "stop_seq");
-            table = AddColumn(table, "System.DateTime", "time_prev");
-            table = AddColumn(table, "System.DateTime", "time_req");
-            table = AddColumn(table, "System.DateTime", "time_org");
-            table = AddColumn(table, "System.DateTime", "time");
-            table = AddColumn(table, "System.Int32", "timestamp");
-            table = AddColumn(table, "System.Double", "distance");
-            table = AddColumn(table, "System.Int32", "delay");
-            table = AddColumn(table, "System.Int32", "delay_change");
-            table = AddColumn(table, "SqlGeography", "geometry"); 
-            return table;
-        }
-
-        private DataTable AddColumn(DataTable table, string type, string name)
-        {
-            DataColumn column;
-            if (type == "SqlGeography")
-            {
-                column = new DataColumn(dataType: typeof(SqlGeography), columnName: name);
-            }
-            else
-            {
-                column = new DataColumn(dataType: Type.GetType(type), columnName: name);
-            }
-            table.Columns.Add(column);
-            return table;
-        }
-
         public DataTable FillTable(TransitRealtime.VehiclePosition obj)
         {
             var row = VehicleData.NewRow();
@@ -67,22 +28,19 @@ namespace GTFS_parser
             row["line"] = obj.Trip.RouteId;
             row["brigade"] = obj.Vehicle.Label;
             row["status"] = obj.CurrentStatus;
+            row["stop_seq"] = obj.CurrentStopSequence;
             row["position_x"] = obj.Position.Longitude;
             row["position_y"] = obj.Position.Latitude;
+            row["distance"] = 0;
             row["speed"] = obj.Position.Speed;
-            row["stop_seq"] = obj.CurrentStopSequence;
             row["time_prev"] = DateTime.Now;
             row["time_req"] = DateTime.Now;
             DateTime date = new DateTime(1970, 1, 1, 0, 0, 0).ToLocalTime().AddSeconds(obj.Timestamp);
             row["time_org"] = date;
-            date = RoundTime(date, TimeSpan.FromSeconds(15), date.AddSeconds(-15));
-            row["time"] = date;
+            row["time"] = RoundTime(date, TimeSpan.FromSeconds(15));
             row["timestamp"] = obj.Timestamp + 3600;
-            row["delay"] = 0;
-            row["delay_change"] = 0;
             var wkt = $"POINT({obj.Position.Longitude} {obj.Position.Latitude})";
             row["geometry"] = SqlGeography.STGeomFromText(new SqlChars(wkt.Replace(",", ".")), 4326);
-            row["distance"] = 0;
             VehicleData.Rows.Add(row);
             return VehicleData;
         }
@@ -95,23 +53,20 @@ namespace GTFS_parser
             row["line"] = obj.Trip.RouteId;
             row["brigade"] = obj.Vehicle.Label;
             row["status"] = obj.CurrentStatus;
+            row["stop_seq"] = obj.CurrentStopSequence;
             row["position_x"] = obj.Position.Longitude;
             row["position_y"] = obj.Position.Latitude;
             row["speed"] = obj.Position.Speed;
-            row["stop_seq"] = obj.CurrentStopSequence;
             row["time_prev"] = prevRecord["time"];
             row["time_req"] = DateTime.Now;
             DateTime date = new DateTime(1970, 1, 1, 0, 0, 0).ToLocalTime().AddSeconds(obj.Timestamp);
             row["time_org"] = date;
-            date = RoundTime(date, TimeSpan.FromSeconds(15), DateTime.Parse(prevRecord["time"].ToString()));
-            row["time"] = date;
+            row["time"] = RoundTime(date, TimeSpan.FromSeconds(15), DateTime.Parse(prevRecord["time"].ToString()));
             row["timestamp"] = obj.Timestamp + 3600;
-            row["delay"] = 0;
-            row["delay_change"] = 0;
             var wkt = $"POINT({obj.Position.Longitude} {obj.Position.Latitude})";
             row["geometry"] = SqlGeography.STGeomFromText(new SqlChars(wkt.Replace(",", ".")), 4326);
             row["distance"] = double.Parse(
-                    ( (SqlGeography)row["geometry"] ).STDistance( (SqlGeography)prevRecord["geometry"] ).ToString()
+                    ((SqlGeography)row["geometry"]).STDistance((SqlGeography)prevRecord["geometry"]).ToString()
                 );
             VehicleData.Rows.Add(row);
             return VehicleData;
@@ -152,13 +107,16 @@ namespace GTFS_parser
             }
 
             return rounded;
+           
+            //return dt.AddTicks(-(dt.Ticks % d.Ticks));
+        }
 
-            /*var delta = dt.Ticks % d.Ticks;
+        private DateTime RoundTime(DateTime dt, TimeSpan d)
+        {
+            var delta = dt.Ticks % d.Ticks;
             bool roundUp = delta > d.Ticks / 2;
             var offset = roundUp ? d.Ticks : 0;
-            return new DateTime(dt.Ticks + offset - delta, dt.Kind);*/
-            
-            //return dt.AddTicks(-(dt.Ticks % d.Ticks));
+            return new DateTime(dt.Ticks + offset - delta, dt.Kind);
         }
     }
 }
