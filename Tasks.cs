@@ -90,14 +90,14 @@ namespace GTFS_parser
             return dataMerged;
         }
 
-        public void UploadData(DataTable data)
+        public void UploadData(DataTable data, string table)
         {
             using (var cnn = new SqlConnection(ConfigurationManager.ConnectionStrings["ConnectionString"].ConnectionString))
             {
                 cnn.Open();
                 using (var bulkcopy = new SqlBulkCopy(cnn))
                 {
-                    bulkcopy.DestinationTableName = "records_test";
+                    bulkcopy.DestinationTableName = table;
                     bulkcopy.WriteToServer(data);
                     bulkcopy.Close();
                 }

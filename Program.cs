@@ -50,7 +50,7 @@ namespace GTFS_parser
             Console.WriteLine(results.Rows.Count);
 
             tasks.PrintData(results);
-            tasks.UploadData(results);
+            tasks.UploadData(results, "records_test");
 
             return results;
         }
