@@ -29,7 +29,16 @@ namespace GTFS_parser
             using (var response = (HttpWebResponse)HttpRequest.GetResponse())
             {
                 var responseStream = response.GetResponseStream();
-                var feed = TransitRealtime.FeedMessage.Parser.ParseFrom(responseStream);
+                FeedMessage feed;
+                try
+                {
+                    feed = TransitRealtime.FeedMessage.Parser.ParseFrom(responseStream);
+                }
+                catch (Google.Protobuf.InvalidProtocolBufferException ex)
+                {
+                    feed = null;
+                    NLogger.Log.Error($"{ex.GetType()} | {ex}");
+                }
                 response.Close();
                 responseStream.Close();
                 HttpRequest.Abort();

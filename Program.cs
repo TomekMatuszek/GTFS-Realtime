@@ -17,6 +17,7 @@ namespace GTFS_parser
             Console.WriteLine("GTFS-RT data for public transport vehicles in Poznan ------------------------------------------------");
             SqlServerTypes.Utilities.LoadNativeAssemblies(AppDomain.CurrentDomain.BaseDirectory);
 
+            NLogger.Log.Info("START");
             Parameters.Minutes = int.Parse(args[0]);
             Parameters.Seconds = int.Parse(args[1]);
 
@@ -27,6 +28,7 @@ namespace GTFS_parser
                 {
                     var t1 = DateTime.Now;
                     oldResults = Run(oldResults);
+                    Console.WriteLine($"Phase || {i}:{j * Parameters.Seconds}");
                     var t2 = DateTime.Now;
                     if (i < (Parameters.Minutes - 1) | j < ((60 / Parameters.Seconds) - 1))
                     {
@@ -34,23 +36,31 @@ namespace GTFS_parser
                     }
                 }
             }
-            
-            //Console.ReadLine();
+            NLogger.Log.Info("DONE");
         }
 
         static DataTable Run(DataTable oldResults)
         {
             var tasks = new Tasks(oldResults);
             var vehiclePositions = tasks.DownloadGTFS("vehicle_positions");
-            //Console.WriteLine(vehiclePositions.Entity[0].ToString());
             var tripUpdates = tasks.DownloadGTFS("trip_updates");
+            //Console.WriteLine(vehiclePositions.Entity[0].ToString());
             //Console.WriteLine(tripUpdates.Entity[0].ToString());
 
-            var results = tasks.PrepareData(vehiclePositions, tripUpdates);
-            Console.WriteLine(results.Rows.Count);
+            DataTable results;
+            try
+            {
+                results = tasks.PrepareData(vehiclePositions, tripUpdates);
+            }
+            catch (InvalidOperationException ex)
+            {
+                results = oldResults;
+                NLogger.Log.Error($"{ex.GetType()} | {ex}");
+            }
+            Console.WriteLine($"Vehicles: {results.Rows.Count}");
 
             tasks.PrintData(results);
-            tasks.UploadData(results, "records_test");
+            tasks.UploadData(results, "records");
 
             return results;
         }
