@@ -10,49 +10,32 @@ namespace GTFS_parser
 {
     public class TableBuilder
     {
-        Dictionary<string, string> Columns = new Dictionary<string, string>(){
-            {"fid", "System.Int32"},
-            {"trip_id", "System.String"},
-            {"line", "System.String"},
-            {"brigade" , "System.String"},
-            {"status" , "System.String"},
-            {"stop_seq" , "System.String"},
-            {"position_x" , "System.Double"},
-            {"position_y" , "System.Double"},
-            {"distance" , "System.Double"},
-            {"speed" , "System.Double"},
-            {"time_prev" , "System.DateTime"},
-            {"time_req" , "System.DateTime"},
-            {"time_org" , "System.DateTime"},
-            {"time" , "System.DateTime"},
-            {"timestamp" , "System.Int32"},
-            {"delay" , "System.Int32"},
-            {"delay_change" , "System.Int32"},
-            {"geometry" , "SqlGeography"}
+        Dictionary<string, Type> Columns = new Dictionary<string, Type>()
+        {
+            {"fid",         typeof(int)},
+            {"trip_id",     typeof(string)},
+            {"line",        typeof(string)},
+            {"brigade" ,    typeof(string)},
+            {"status" ,     typeof(string)},
+            {"stop_seq" ,   typeof(string)},
+            {"position_x" , typeof(double)},
+            {"position_y" , typeof(double)},
+            {"distance" ,   typeof(double)},
+            {"speed" ,      typeof(double)},
+            {"time_prev" ,  typeof(DateTime)},
+            {"time_req" ,   typeof(DateTime)},
+            {"time_org" ,   typeof(DateTime)},
+            {"time" ,       typeof(DateTime)},
+            {"timestamp" ,  typeof(int)},
+            {"delay" ,      typeof(int)},
+            {"delay_change" , typeof(int)},
+            {"geometry" ,   typeof(SqlGeography)}
         };
         
         public DataTable PrepareTable()
         {
             var table = new DataTable();
-            foreach (var column in Columns)
-            {
-                table = AddColumn(table, column.Value, column.Key);
-            }
-            return table;
-        }
-
-        private DataTable AddColumn(DataTable table, string type, string name)
-        {
-            DataColumn column;
-            if (type == "SqlGeography")
-            {
-                column = new DataColumn(dataType: typeof(SqlGeography), columnName: name);
-            }
-            else
-            {
-                column = new DataColumn(dataType: Type.GetType(type), columnName: name);
-            }
-            table.Columns.Add(column);
+            Columns.ToList().ForEach(c => table.Columns.Add(c.Key, c.Value));
             return table;
         }
     }
