@@ -14,23 +14,23 @@ namespace GTFS_parser
     {
         static void Main(string[] args)
         {
-            Console.WriteLine("GTFS-RT data for public transport vehicles in Poznan ------------------------");
+            Console.WriteLine("GTFS-RT data for public transport vehicles in Poznan ------------------------------------------------");
             SqlServerTypes.Utilities.LoadNativeAssemblies(AppDomain.CurrentDomain.BaseDirectory);
 
-            var minutes = int.Parse(args[0]);
-            var seconds = int.Parse(args[1]);
+            Parameters.Minutes = int.Parse(args[0]);
+            Parameters.Seconds = int.Parse(args[1]);
 
             var oldResults = new DataTable();
-            for (int i = 0; i < minutes; i++)
+            for (int i = 0; i < Parameters.Minutes; i++)
             {
-                for (int j = 0; j < (60 / seconds); j++)
+                for (int j = 0; j < (60 / Parameters.Seconds); j++)
                 {
                     var t1 = DateTime.Now;
                     oldResults = Run(oldResults);
                     var t2 = DateTime.Now;
-                    if (i < (minutes - 1) | j < ((60 / seconds) - 1))
+                    if (i < (Parameters.Minutes - 1) | j < ((60 / Parameters.Seconds) - 1))
                     {
-                        Thread.Sleep((seconds * 1000) - (t2 - t1).Milliseconds);
+                        Thread.Sleep((Parameters.Seconds * 1000) - (t2 - t1).Milliseconds);
                     }
                 }
             }

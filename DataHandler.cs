@@ -37,7 +37,7 @@ namespace GTFS_parser
             row["time_req"] = DateTime.Now;
             DateTime date = new DateTime(1970, 1, 1, 0, 0, 0).ToLocalTime().AddSeconds(obj.Timestamp);
             row["time_org"] = date;
-            row["time"] = RoundTime(date, TimeSpan.FromSeconds(15));
+            row["time"] = RoundTime(date, TimeSpan.FromSeconds(Parameters.Seconds));
             row["timestamp"] = obj.Timestamp + 3600;
             var wkt = $"POINT({obj.Position.Longitude} {obj.Position.Latitude})";
             row["geometry"] = SqlGeography.STGeomFromText(new SqlChars(wkt.Replace(",", ".")), 4326);
@@ -61,7 +61,7 @@ namespace GTFS_parser
             row["time_req"] = DateTime.Now;
             DateTime date = new DateTime(1970, 1, 1, 0, 0, 0).ToLocalTime().AddSeconds(obj.Timestamp);
             row["time_org"] = date;
-            row["time"] = RoundTime(date, TimeSpan.FromSeconds(15), DateTime.Parse(prevRecord["time"].ToString()));
+            row["time"] = RoundTime(date, TimeSpan.FromSeconds(Parameters.Seconds), DateTime.Parse(prevRecord["time"].ToString()));
             row["timestamp"] = obj.Timestamp + 3600;
             var wkt = $"POINT({obj.Position.Longitude} {obj.Position.Latitude})";
             row["geometry"] = SqlGeography.STGeomFromText(new SqlChars(wkt.Replace(",", ".")), 4326);
@@ -99,11 +99,11 @@ namespace GTFS_parser
             TimeSpan diff = rounded - prev;
             if (rounded == prev)
             {
-                rounded = rounded.AddSeconds(15);
+                rounded = rounded.AddSeconds(Parameters.Seconds);
             }
-            else if (diff.Seconds > 15)
+            else if (diff.Seconds > Parameters.Seconds)
             {
-                rounded = rounded.AddSeconds(-15);
+                rounded = rounded.AddSeconds(-(Parameters.Seconds));
             }
 
             return rounded;
