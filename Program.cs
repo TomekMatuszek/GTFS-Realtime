@@ -48,21 +48,29 @@ namespace GTFS_parser
             //Console.WriteLine(tripUpdates.Entity[0].ToString());
 
             DataTable results;
-            try
+            if (vehiclePositions != null)
             {
-                results = tasks.PrepareData(vehiclePositions, tripUpdates);
+                try
+                {
+                    results = tasks.PrepareData(vehiclePositions, tripUpdates);
+                    Console.WriteLine($"Vehicles: {results.Rows.Count}");
+
+                    tasks.PrintData(results);
+                    tasks.UploadData(results, "records");
+                }
+                catch (InvalidOperationException ex)
+                {
+                    results = oldResults;
+                    NLogger.Log.Error($"{ex.GetType()} | {ex}");
+                }
+
+                return results;
             }
-            catch (InvalidOperationException ex)
+            else
             {
-                results = oldResults;
-                NLogger.Log.Error($"{ex.GetType()} | {ex}");
+                NLogger.Log.Info($"EMPTY VEHICLES FEED");
+                return oldResults;
             }
-            Console.WriteLine($"Vehicles: {results.Rows.Count}");
-
-            tasks.PrintData(results);
-            tasks.UploadData(results, "records");
-
-            return results;
         }
     }
 }
