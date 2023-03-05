@@ -37,7 +37,7 @@ namespace GTFS_parser
                 catch (Google.Protobuf.InvalidProtocolBufferException ex)
                 {
                     feed = null;
-                    NLogger.Log.Error($"{ex.GetType()} | {ex}");
+                    NLogger.Log.Error($"{ex.GetType()} [{type}] | {ex}");
                 }
                 response.Close();
                 responseStream.Close();
