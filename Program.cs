@@ -60,6 +60,7 @@ namespace GTFS_parser
                 }
                 catch (InvalidOperationException ex)
                 {
+                    Console.WriteLine($"Empty DataTable");
                     results = oldResults;
                     NLogger.Log.Error($"{ex.GetType()} | {ex}");
                 }
@@ -68,7 +69,7 @@ namespace GTFS_parser
             }
             else
             {
-                NLogger.Log.Info($"EMPTY VEHICLES FEED");
+                NLogger.Log.Info($"Empty vehicles feed");
                 return oldResults;
             }
         }
