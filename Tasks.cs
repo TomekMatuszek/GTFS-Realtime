@@ -26,6 +26,7 @@ namespace GTFS_parser
         public TransitRealtime.FeedMessage DownloadGTFS(string type)
         {
             var HttpRequest = (HttpWebRequest)WebRequest.Create($"https://www.ztm.poznan.pl/pl/dla-deweloperow/getGtfsRtFile/?file={type}.pb");
+            HttpRequest.KeepAlive = false;
             using (var response = (HttpWebResponse)HttpRequest.GetResponse())
             {
                 var responseStream = response.GetResponseStream();
@@ -87,7 +88,7 @@ namespace GTFS_parser
                                 d1.Field<DateTime>("time"),
                                 d1.Field<int>("timestamp"),
                                 d2.Field<int>("delay"),
-                                d2.Field<int>("delay_change"),
+                                d2.Field<int?>("delay_change"),
                                 d1.Field<SqlGeography>("geometry")
                                }, false)).CopyToDataTable();
             }
