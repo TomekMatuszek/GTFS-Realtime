@@ -93,7 +93,7 @@ namespace GTFS_parser
             }
             catch (InvalidCastException)
             {
-                row["delay_change"] = null;
+                row["delay_change"] = DBNull.Value;
             }
             TripsData.Rows.Add(row);
             return TripsData;
