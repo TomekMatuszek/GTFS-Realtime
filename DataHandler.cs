@@ -87,11 +87,14 @@ namespace GTFS_parser
             var row = TripsData.NewRow();
             row["trip_id"] = obj.Trip.TripId;
             row["delay"] = obj.StopTimeUpdate[0].Arrival.Delay;
-            if (prevRecord["delay"] != null)
+            try
             {
                 row["delay_change"] = obj.StopTimeUpdate[0].Arrival.Delay - (int)prevRecord["delay"];
             }
-            else { row["delay_change"] = null; }
+            catch (InvalidCastException)
+            {
+                row["delay_change"] = null;
+            }
             TripsData.Rows.Add(row);
             return TripsData;
         }
