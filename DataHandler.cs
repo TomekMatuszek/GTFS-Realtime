@@ -35,10 +35,10 @@ namespace GTFS_parser
             row["speed"] = obj.Position.Speed;
             row["time_prev"] = DateTime.Now;
             row["time_req"] = DateTime.Now;
-            DateTime date = new DateTime(1970, 1, 1, 0, 0, 0).ToLocalTime().AddSeconds(obj.Timestamp);
+            DateTime date = new DateTime(1970, 1, 1, 0, 0, 0).ToLocalTime().AddSeconds(obj.Timestamp + 3600);
             row["time_org"] = date;
             row["time"] = RoundTime(date, TimeSpan.FromSeconds(Parameters.Seconds));
-            row["timestamp"] = obj.Timestamp + 3600;
+            row["timestamp"] = obj.Timestamp + 7200;
             var wkt = $"POINT({obj.Position.Longitude} {obj.Position.Latitude})";
             row["geometry"] = SqlGeography.STGeomFromText(new SqlChars(wkt.Replace(",", ".")), 4326);
             VehicleData.Rows.Add(row);
@@ -59,10 +59,10 @@ namespace GTFS_parser
             row["speed"] = obj.Position.Speed;
             row["time_prev"] = prevRecord["time"];
             row["time_req"] = DateTime.Now;
-            DateTime date = new DateTime(1970, 1, 1, 0, 0, 0).ToLocalTime().AddSeconds(obj.Timestamp);
+            DateTime date = new DateTime(1970, 1, 1, 0, 0, 0).ToLocalTime().AddSeconds(obj.Timestamp + 3600);
             row["time_org"] = date;
             row["time"] = RoundTime(date, TimeSpan.FromSeconds(Parameters.Seconds), DateTime.Parse(prevRecord["time"].ToString()));
-            row["timestamp"] = obj.Timestamp + 3600;
+            row["timestamp"] = obj.Timestamp + 7200;
             var wkt = $"POINT({obj.Position.Longitude} {obj.Position.Latitude})";
             row["geometry"] = SqlGeography.STGeomFromText(new SqlChars(wkt.Replace(",", ".")), 4326);
             row["distance"] = double.Parse(

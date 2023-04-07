@@ -1,2 +1,2 @@
 cd F:\Studia\C#\GTFS-parser\bin\Debug
-GTFS-parser.exe 120 30
+GTFS-parser.exe 240 30

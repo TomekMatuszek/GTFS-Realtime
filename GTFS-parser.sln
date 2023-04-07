@@ -3,7 +3,9 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.1.32421.90
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GTFS-parser", "GTFS-parser.csproj", "{3037856B-3EBC-4DE3-8809-A61CF0A5B1C0}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GTFS-Realtime", "GTFS-Realtime.csproj", "{3037856B-3EBC-4DE3-8809-A61CF0A5B1C0}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Projects", "Projects", "{C60939AC-489C-41C0-9110-2DF7AE5A4D00}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -18,6 +20,9 @@ Global
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{3037856B-3EBC-4DE3-8809-A61CF0A5B1C0} = {C60939AC-489C-41C0-9110-2DF7AE5A4D00}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {D91B100C-5184-4D61-9DA6-ED1D7DC47F96}
