@@ -14,7 +14,7 @@ namespace GTFS_parser
     {
         static void Main(string[] args)
         {
-            Console.WriteLine("GTFS-RT data for public transport vehicles in Poznan ------------------------------------------------");
+            Console.WriteLine("GTFS-Realtime data for public transport vehicles in Poznan ------------------------------------------------");
             SqlServerTypes.Utilities.LoadNativeAssemblies(AppDomain.CurrentDomain.BaseDirectory);
 
             Parameters.Minutes = int.Parse(args[0]);
