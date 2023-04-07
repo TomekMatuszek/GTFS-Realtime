@@ -44,8 +44,6 @@ namespace GTFS_parser
             var tasks = new Tasks(oldResults);
             var vehiclePositions = tasks.DownloadGTFS("vehicle_positions");
             var tripUpdates = tasks.DownloadGTFS("trip_updates");
-            //Console.WriteLine(vehiclePositions.Entity[0].ToString());
-            //Console.WriteLine(tripUpdates.Entity[0].ToString());
 
             DataTable results;
             if (vehiclePositions != null)

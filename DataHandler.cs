@@ -31,16 +31,12 @@ namespace GTFS_parser
             row["stop_seq"] = obj.CurrentStopSequence;
             row["position_x"] = obj.Position.Longitude;
             row["position_y"] = obj.Position.Latitude;
-            row["distance"] = 0;
             row["speed"] = obj.Position.Speed;
-            row["time_prev"] = DateTime.Now;
-            row["time_req"] = DateTime.Now;
-            DateTime date = new DateTime(1970, 1, 1, 0, 0, 0).ToLocalTime().AddSeconds(obj.Timestamp + 3600);
-            row["time_org"] = date;
-            row["time"] = RoundTime(date, TimeSpan.FromSeconds(Parameters.Seconds));
+            row = ResolveDates(row, obj.Timestamp);
             row["timestamp"] = obj.Timestamp + 7200;
             var wkt = $"POINT({obj.Position.Longitude} {obj.Position.Latitude})";
             row["geometry"] = SqlGeography.STGeomFromText(new SqlChars(wkt.Replace(",", ".")), 4326);
+            row["distance"] = 0;
             VehicleData.Rows.Add(row);
             return VehicleData;
         }
@@ -57,11 +53,7 @@ namespace GTFS_parser
             row["position_x"] = obj.Position.Longitude;
             row["position_y"] = obj.Position.Latitude;
             row["speed"] = obj.Position.Speed;
-            row["time_prev"] = prevRecord["time"];
-            row["time_req"] = DateTime.Now;
-            DateTime date = new DateTime(1970, 1, 1, 0, 0, 0).ToLocalTime().AddSeconds(obj.Timestamp + 3600);
-            row["time_org"] = date;
-            row["time"] = RoundTime(date, TimeSpan.FromSeconds(Parameters.Seconds), DateTime.Parse(prevRecord["time"].ToString()));
+            row = ResolveDates(row, prevRecord, obj.Timestamp);
             row["timestamp"] = obj.Timestamp + 7200;
             var wkt = $"POINT({obj.Position.Longitude} {obj.Position.Latitude})";
             row["geometry"] = SqlGeography.STGeomFromText(new SqlChars(wkt.Replace(",", ".")), 4326);
@@ -99,6 +91,26 @@ namespace GTFS_parser
             return TripsData;
         }
 
+        private DataRow ResolveDates(DataRow row, DataRow prevRecord, ulong timestamp)
+        {
+            row["time_prev"] = prevRecord["time"];
+            row["time_req"] = DateTime.Now;
+            DateTime date = new DateTime(1970, 1, 1, 0, 0, 0).ToLocalTime().AddSeconds(timestamp + 3600);
+            row["time_org"] = date;
+            row["time"] = RoundTime(date, TimeSpan.FromSeconds(Parameters.Seconds), DateTime.Parse(prevRecord["time"].ToString()));
+            return row;
+        }
+
+        private DataRow ResolveDates(DataRow row, ulong timestamp)
+        {
+            row["time_prev"] = DateTime.Now;
+            row["time_req"] = DateTime.Now;
+            DateTime date = new DateTime(1970, 1, 1, 0, 0, 0).ToLocalTime().AddSeconds(timestamp + 3600);
+            row["time_org"] = date;
+            row["time"] = RoundTime(date, TimeSpan.FromSeconds(Parameters.Seconds));
+            return row;
+        }
+
         private DateTime RoundTime(DateTime dt, TimeSpan d, DateTime prev)
         {
             var delta = dt.Ticks % d.Ticks;
@@ -114,7 +126,6 @@ namespace GTFS_parser
             }
 
             return rounded;
-           
             //return dt.AddTicks(-(dt.Ticks % d.Ticks));
         }
 
