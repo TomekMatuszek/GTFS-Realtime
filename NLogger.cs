@@ -1,7 +1,7 @@
 ﻿using NLog;
 using NLog.Web;
 
-namespace GTFS_parser
+namespace GTFS_Realtime
 {
     public static class NLogger
     {

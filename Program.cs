@@ -8,7 +8,7 @@ using System.Data.SqlClient;
 using System.Configuration;
 using System.Threading;
 
-namespace GTFS_parser
+namespace GTFS_Realtime
 {
     class Program
     {

@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace GTFS_parser
+namespace GTFS_Realtime
 {
     public static class Parameters
     {

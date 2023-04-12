@@ -12,7 +12,7 @@ using System.Data.SqlTypes;
 using System.Runtime.InteropServices;
 using TransitRealtime;
 
-namespace GTFS_parser
+namespace GTFS_Realtime
 {
     public class Tasks
     {
