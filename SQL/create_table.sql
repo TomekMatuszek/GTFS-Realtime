@@ -1,4 +1,4 @@
-CREATE TABLE poznanGTFS.dbo.records(
+CREATE TABLE poznanGTFS.dbo.realtime(
 fid int NOT NULL IDENTITY(1,1) PRIMARY KEY,
 trip_id varchar(50),
 line varchar(10),

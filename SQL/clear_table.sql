@@ -1,1 +1,1 @@
-DELETE FROM poznanGTFS.dbo.records;
+DELETE FROM poznanGTFS.dbo.realtime;
