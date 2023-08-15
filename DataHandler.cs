@@ -1,26 +1,43 @@
 ﻿using Microsoft.SqlServer.Types;
 using System;
+using System.Collections;
 using System.Collections.Generic;
+using System.Configuration;
 using System.Data;
+using System.Data.SqlClient;
 using System.Data.SqlTypes;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Web.UI.WebControls;
 
 namespace GTFS_Realtime
 {
     public class DataHandler : TableBuilder
     {
-        DataTable VehicleData = new DataTable();
-        DataTable TripsData = new DataTable();
+        public DataTable VehicleData = new DataTable();
+        public DataTable TripsData = new DataTable();
+        private SqlGeography RouteNetwork;
 
         public DataHandler()
         {
             VehicleData = PrepareTable();
             TripsData = PrepareTable();
+
+            var query = "select network from SIEC";
+            var routeNetwork = new DataTable();
+            using (var cnn = new SqlConnection(ConfigurationManager.ConnectionStrings["ConnectionString"].ConnectionString))
+            using (var cmd = new SqlCommand(query, cnn))
+            using (var da = new SqlDataAdapter(cmd))
+            {
+                cnn.Open();
+                da.Fill(routeNetwork);
+                cnn.Close();
+            }
+            RouteNetwork = (SqlGeography)routeNetwork.Rows[0]["network"];
         }
 
-        public DataTable FillTable(TransitRealtime.VehiclePosition obj)
+        public void FillTable(TransitRealtime.VehiclePosition obj)
         {
             var row = VehicleData.NewRow();
             row["fid"] = 0;
@@ -35,13 +52,14 @@ namespace GTFS_Realtime
             row = ResolveDates(row, obj.Timestamp);
             row["timestamp"] = obj.Timestamp + 7200;
             var wkt = $"POINT({obj.Position.Longitude} {obj.Position.Latitude})";
-            row["geometry"] = SqlGeography.STGeomFromText(new SqlChars(wkt.Replace(",", ".")), 4326);
+            var wktGeom = SqlGeography.STGeomFromText(new SqlChars(wkt.Replace(",", ".")), 4326);
+            var matchedPoint = wktGeom.ShortestLineTo(RouteNetwork);
+            row["geometry"] = matchedPoint.STLength() < 50 ? matchedPoint.STEndPoint() : wktGeom;
             row["distance"] = 0;
             VehicleData.Rows.Add(row);
-            return VehicleData;
         }
 
-        public DataTable FillTable(TransitRealtime.VehiclePosition obj, DataRow prevRecord)
+        public void FillTable(TransitRealtime.VehiclePosition obj, DataRow prevRecord)
         {
             var row = VehicleData.NewRow();
             row["fid"] = 0;
@@ -56,25 +74,25 @@ namespace GTFS_Realtime
             row = ResolveDates(row, prevRecord, obj.Timestamp);
             row["timestamp"] = obj.Timestamp + 7200;
             var wkt = $"POINT({obj.Position.Longitude} {obj.Position.Latitude})";
-            row["geometry"] = SqlGeography.STGeomFromText(new SqlChars(wkt.Replace(",", ".")), 4326);
+            var wktGeom = SqlGeography.STGeomFromText(new SqlChars(wkt.Replace(",", ".")), 4326);
+            var matchedPoint = wktGeom.ShortestLineTo(RouteNetwork);
+            row["geometry"] = matchedPoint.STLength() < 50 ? matchedPoint.STEndPoint() : wktGeom;
             row["distance"] = double.Parse(
                     ((SqlGeography)row["geometry"]).STDistance((SqlGeography)prevRecord["geometry"]).ToString()
                 );
             VehicleData.Rows.Add(row);
-            return VehicleData;
         }
 
-        public DataTable FillTable(TransitRealtime.TripUpdate obj)
+        public void FillTable(TransitRealtime.TripUpdate obj)
         {
             var row = TripsData.NewRow();
             row["trip_id"] = obj.Trip.TripId;
             row["delay"] = obj.StopTimeUpdate[0].Arrival.Delay;
             row["delay_change"] = 0;
             TripsData.Rows.Add(row);
-            return TripsData;
         }
 
-        public DataTable FillTable(TransitRealtime.TripUpdate obj, DataRow prevRecord)
+        public void FillTable(TransitRealtime.TripUpdate obj, DataRow prevRecord)
         {
             var row = TripsData.NewRow();
             row["trip_id"] = obj.Trip.TripId;
@@ -88,7 +106,6 @@ namespace GTFS_Realtime
                 row["delay_change"] = DBNull.Value;
             }
             TripsData.Rows.Add(row);
-            return TripsData;
         }
 
         private DataRow ResolveDates(DataRow row, DataRow prevRecord, ulong timestamp)
