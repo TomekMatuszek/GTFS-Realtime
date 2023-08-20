@@ -41,7 +41,8 @@ namespace GTFS_Realtime
 
         static DataTable Run(DataTable oldResults)
         {
-            var tasks = new Tasks(oldResults);
+            var dataHandler = new DataHandler();
+            var tasks = new Tasks(oldResults, dataHandler);
             var vehiclePositions = tasks.DownloadGTFS("vehicle_positions");
             var tripUpdates = tasks.DownloadGTFS("trip_updates");
 
@@ -50,7 +51,7 @@ namespace GTFS_Realtime
             {
                 try
                 {
-                    results = tasks.PrepareData(vehiclePositions, tripUpdates);
+                    tasks.PrepareData(out results, vehiclePositions, tripUpdates);
                     Console.WriteLine($"Vehicles: {results.Rows.Count}");
 
                     tasks.PrintData(results);

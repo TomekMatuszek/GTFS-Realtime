@@ -17,10 +17,12 @@ namespace GTFS_Realtime
     public class Tasks
     {
         DataTable OldData;
+        IDataHandler _dataHandler;
 
-        public Tasks(DataTable oldData)
+        public Tasks(DataTable oldData, IDataHandler handler)
         {
             OldData = oldData;
+            _dataHandler = handler;
         }
         
         public TransitRealtime.FeedMessage DownloadGTFS(string type)
@@ -55,19 +57,16 @@ namespace GTFS_Realtime
             }
         }
 
-        public DataTable PrepareData(TransitRealtime.FeedMessage vehiclePositions, TransitRealtime.FeedMessage tripUpdates = null)
+        public void PrepareData(out DataTable mergedResults, TransitRealtime.FeedMessage vehiclePositions, TransitRealtime.FeedMessage tripUpdates = null)
         {
-            var handler = new DataHandler();
-            var data1 = new DataTable();
-            var data2 = new DataTable();
             DataTable dataMerged;
-            data1 = PrepareVehicles(vehiclePositions, handler);
+            PrepareVehicles(vehiclePositions, out DataTable data1);
 
             if (tripUpdates != null)
             {
-                data2 = PrepareTrips(tripUpdates, handler);
+                PrepareTrips(tripUpdates, out DataTable data2);
 
-                dataMerged = handler.PrepareTable();
+                dataMerged = _dataHandler.PrepareTable();
                 var results = (from d1 in data1.AsEnumerable()
                                join d2 in data2.AsEnumerable() on d1.Field<string>("trip_id") equals d2.Field<string>("trip_id")
                                select dataMerged.LoadDataRow(new object[]
@@ -96,8 +95,7 @@ namespace GTFS_Realtime
             {
                 dataMerged = data1;
             }
- 
-            return dataMerged;
+            mergedResults = dataMerged;
         }
 
         public void UploadData(DataTable data, string table)
@@ -115,44 +113,44 @@ namespace GTFS_Realtime
             }
         }
 
-        private DataTable PrepareVehicles(TransitRealtime.FeedMessage vehiclePositions, DataHandler handler)
+        private void PrepareVehicles(TransitRealtime.FeedMessage vehiclePositions, out DataTable vehicleData)
         {
             for (int i = 0; i < vehiclePositions.Entity.Count; i++)
             {
                 try
                 {
-                    handler.FillTable(vehiclePositions.Entity[i].Vehicle, OldData.Select($"trip_id = '{vehiclePositions.Entity[i].Vehicle.Trip.TripId}'")[0]);
+                    _dataHandler.FillTable(vehiclePositions.Entity[i].Vehicle, OldData.Select($"trip_id = '{vehiclePositions.Entity[i].Vehicle.Trip.TripId}'")[0]);
                 }
                 catch (EvaluateException)
                 {
-                    handler.FillTable(vehiclePositions.Entity[i].Vehicle);
+                    _dataHandler.FillTable(vehiclePositions.Entity[i].Vehicle);
                 }
                 catch (IndexOutOfRangeException)
                 {
-                    handler.FillTable(vehiclePositions.Entity[i].Vehicle);
+                    _dataHandler.FillTable(vehiclePositions.Entity[i].Vehicle);
                 }
             }
-            return handler.VehicleData;
+            vehicleData = _dataHandler.VehicleData;
         }
 
-        private DataTable PrepareTrips(TransitRealtime.FeedMessage tripUpdates, DataHandler handler)
+        private void PrepareTrips(TransitRealtime.FeedMessage tripUpdates, out DataTable tripsData)
         {
             for (int j = 0; j < tripUpdates.Entity.Count; j++)
             {
                 try
                 {
-                    handler.FillTable(tripUpdates.Entity[j].TripUpdate, OldData.Select($"trip_id = '{tripUpdates.Entity[j].TripUpdate.Trip.TripId}'")[0]);
+                    _dataHandler.FillTable(tripUpdates.Entity[j].TripUpdate, OldData.Select($"trip_id = '{tripUpdates.Entity[j].TripUpdate.Trip.TripId}'")[0]);
                 }
                 catch (EvaluateException)
                 {
-                    handler.FillTable(tripUpdates.Entity[j].TripUpdate);
+                    _dataHandler.FillTable(tripUpdates.Entity[j].TripUpdate);
                 }
                 catch (IndexOutOfRangeException)
                 {
-                    handler.FillTable(tripUpdates.Entity[j].TripUpdate);
+                    _dataHandler.FillTable(tripUpdates.Entity[j].TripUpdate);
                 }
             }
-            return handler.TripsData;
+            tripsData = _dataHandler.TripsData;
         }
     }
 }

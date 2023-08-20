@@ -13,28 +13,47 @@ using System.Web.UI.WebControls;
 
 namespace GTFS_Realtime
 {
-    public class DataHandler : TableBuilder
+    public class DataHandler : IDataHandler
     {
-        public DataTable VehicleData = new DataTable();
-        public DataTable TripsData = new DataTable();
-        private SqlGeography RouteNetwork;
+        public DataTable VehicleData { get; set; }
+        public DataTable TripsData { get; set; }
+        private ITimeService _timeService;
+        private IGeometrySnapper _geometrySnapper;
+        public static Dictionary<string, Type> Columns = new Dictionary<string, Type>()
+        {
+            {"fid",         typeof(int)},
+            {"trip_id",     typeof(string)},
+            {"line",        typeof(string)},
+            {"brigade" ,    typeof(string)},
+            {"status" ,     typeof(string)},
+            {"stop_seq" ,   typeof(string)},
+            {"position_x" , typeof(double)},
+            {"position_y" , typeof(double)},
+            {"distance" ,   typeof(double)},
+            {"speed" ,      typeof(double)},
+            {"time_prev" ,  typeof(DateTime)},
+            {"time_req" ,   typeof(DateTime)},
+            {"time_org" ,   typeof(DateTime)},
+            {"time" ,       typeof(DateTime)},
+            {"timestamp" ,  typeof(int)},
+            {"delay" ,      typeof(int)},
+            {"delay_change" , typeof(int)},
+            {"geometry" ,   typeof(SqlGeography)}
+        };
 
         public DataHandler()
         {
+            _timeService = new TimeService();
+            _geometrySnapper = new GeometrySnapper();
             VehicleData = PrepareTable();
             TripsData = PrepareTable();
+        }
 
-            var query = "select network from SIEC";
-            var routeNetwork = new DataTable();
-            using (var cnn = new SqlConnection(ConfigurationManager.ConnectionStrings["ConnectionString"].ConnectionString))
-            using (var cmd = new SqlCommand(query, cnn))
-            using (var da = new SqlDataAdapter(cmd))
-            {
-                cnn.Open();
-                da.Fill(routeNetwork);
-                cnn.Close();
-            }
-            RouteNetwork = (SqlGeography)routeNetwork.Rows[0]["network"];
+        public DataTable PrepareTable()
+        {
+            var table = new DataTable();
+            Columns.ToList().ForEach(c => table.Columns.Add(c.Key, c.Value));
+            return table;
         }
 
         public void FillTable(TransitRealtime.VehiclePosition obj)
@@ -49,12 +68,9 @@ namespace GTFS_Realtime
             row["position_x"] = obj.Position.Longitude;
             row["position_y"] = obj.Position.Latitude;
             row["speed"] = obj.Position.Speed;
-            row = ResolveDates(row, obj.Timestamp);
+            row = _timeService.ResolveDates(row, obj.Timestamp);
             row["timestamp"] = obj.Timestamp + 7200;
-            var wkt = $"POINT({obj.Position.Longitude} {obj.Position.Latitude})";
-            var wktGeom = SqlGeography.STGeomFromText(new SqlChars(wkt.Replace(",", ".")), 4326);
-            var matchedPoint = wktGeom.ShortestLineTo(RouteNetwork);
-            row["geometry"] = matchedPoint.STLength() < 50 ? matchedPoint.STEndPoint() : wktGeom;
+            row["geometry"] = _geometrySnapper.SnapGeometryToNetwork(obj.Position.Longitude, obj.Position.Latitude);
             row["distance"] = 0;
             VehicleData.Rows.Add(row);
         }
@@ -71,12 +87,9 @@ namespace GTFS_Realtime
             row["position_x"] = obj.Position.Longitude;
             row["position_y"] = obj.Position.Latitude;
             row["speed"] = obj.Position.Speed;
-            row = ResolveDates(row, prevRecord, obj.Timestamp);
+            row = _timeService.ResolveDates(row, prevRecord, obj.Timestamp);
             row["timestamp"] = obj.Timestamp + 7200;
-            var wkt = $"POINT({obj.Position.Longitude} {obj.Position.Latitude})";
-            var wktGeom = SqlGeography.STGeomFromText(new SqlChars(wkt.Replace(",", ".")), 4326);
-            var matchedPoint = wktGeom.ShortestLineTo(RouteNetwork);
-            row["geometry"] = matchedPoint.STLength() < 50 ? matchedPoint.STEndPoint() : wktGeom;
+            row["geometry"] = _geometrySnapper.SnapGeometryToNetwork(obj.Position.Longitude, obj.Position.Latitude);
             row["distance"] = double.Parse(
                     ((SqlGeography)row["geometry"]).STDistance((SqlGeography)prevRecord["geometry"]).ToString()
                 );
@@ -106,52 +119,6 @@ namespace GTFS_Realtime
                 row["delay_change"] = DBNull.Value;
             }
             TripsData.Rows.Add(row);
-        }
-
-        private DataRow ResolveDates(DataRow row, DataRow prevRecord, ulong timestamp)
-        {
-            row["time_prev"] = prevRecord["time"];
-            row["time_req"] = DateTime.Now;
-            DateTime date = new DateTime(1970, 1, 1, 0, 0, 0).ToLocalTime().AddSeconds(timestamp + 3600);
-            row["time_org"] = date;
-            row["time"] = RoundTime(date, TimeSpan.FromSeconds(Parameters.Seconds), DateTime.Parse(prevRecord["time"].ToString()));
-            return row;
-        }
-
-        private DataRow ResolveDates(DataRow row, ulong timestamp)
-        {
-            row["time_prev"] = DateTime.Now;
-            row["time_req"] = DateTime.Now;
-            DateTime date = new DateTime(1970, 1, 1, 0, 0, 0).ToLocalTime().AddSeconds(timestamp + 3600);
-            row["time_org"] = date;
-            row["time"] = RoundTime(date, TimeSpan.FromSeconds(Parameters.Seconds));
-            return row;
-        }
-
-        private DateTime RoundTime(DateTime dt, TimeSpan d, DateTime prev)
-        {
-            var delta = dt.Ticks % d.Ticks;
-            var rounded = new DateTime(dt.Ticks - delta, dt.Kind);
-            TimeSpan diff = rounded - prev;
-            if (rounded == prev)
-            {
-                rounded = rounded.AddSeconds(Parameters.Seconds);
-            }
-            else if (diff.Seconds > Parameters.Seconds)
-            {
-                rounded = rounded.AddSeconds(-(Parameters.Seconds));
-            }
-
-            return rounded;
-            //return dt.AddTicks(-(dt.Ticks % d.Ticks));
-        }
-
-        private DateTime RoundTime(DateTime dt, TimeSpan d)
-        {
-            var delta = dt.Ticks % d.Ticks;
-            bool roundUp = delta > d.Ticks / 2;
-            var offset = roundUp ? d.Ticks : 0;
-            return new DateTime(dt.Ticks + offset - delta, dt.Kind);
         }
     }
 }
