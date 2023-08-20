@@ -28,7 +28,7 @@ namespace GTFS_Realtime
                 {
                     var t1 = DateTime.Now;
                     oldResults = Run(oldResults);
-                    Console.WriteLine($"Phase || {i}:{j * Parameters.Seconds}");
+                    Console.WriteLine($"Phase || {i:00}:{(j * Parameters.Seconds):00}");
                     var t2 = DateTime.Now;
                     if (i < (Parameters.Minutes - 1) | j < ((60 / Parameters.Seconds) - 1))
                     {
