@@ -292,9 +292,9 @@
   <ItemGroup>
     <Compile Include="DataHandler.cs" />
     <Compile Include="GeometrySnapper.cs" />
-    <Compile Include="IDataHandler.cs" />
-    <Compile Include="IGeometrySnapper.cs" />
-    <Compile Include="ITimeService.cs" />
+    <Compile Include="Interfaces\IDataHandler.cs" />
+    <Compile Include="Interfaces\IGeometrySnapper.cs" />
+    <Compile Include="Interfaces\ITimeService.cs" />
     <Compile Include="NLogger.cs" />
     <Compile Include="Parameters.cs" />
     <Compile Include="Program.cs" />
