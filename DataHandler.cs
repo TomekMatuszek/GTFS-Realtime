@@ -67,7 +67,7 @@ namespace GTFS_Realtime
             row["stop_seq"] = obj.CurrentStopSequence;
             row["position_x"] = obj.Position.Longitude;
             row["position_y"] = obj.Position.Latitude;
-            row["speed"] = obj.Position.Speed;
+            row["speed"] = obj.Position.Speed * 3.6;
             row = _timeService.ResolveDates(row, obj.Timestamp);
             row["timestamp"] = obj.Timestamp + 7200;
             row["geometry"] = _geometrySnapper.SnapGeometryToNetwork(obj.Position.Longitude, obj.Position.Latitude);
