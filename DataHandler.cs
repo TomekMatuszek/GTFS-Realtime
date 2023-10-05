@@ -41,10 +41,10 @@ namespace GTFS_Realtime
             {"geometry" ,   typeof(SqlGeography)}
         };
 
-        public DataHandler()
+        public DataHandler(ITimeService timeService, IGeometrySnapper geometrySnapper)
         {
-            _timeService = new TimeService();
-            _geometrySnapper = new GeometrySnapper();
+            _timeService = timeService;
+            _geometrySnapper = geometrySnapper;
             VehicleData = PrepareTable();
             TripsData = PrepareTable();
         }

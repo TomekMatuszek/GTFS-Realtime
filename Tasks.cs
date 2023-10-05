@@ -19,10 +19,14 @@ namespace GTFS_Realtime
         DataTable OldData;
         IDataHandler _dataHandler;
 
-        public Tasks(DataTable oldData, IDataHandler handler)
+        public Tasks(IDataHandler handler)
+        {
+            _dataHandler = handler;
+        }
+
+        public void AddPreviousResults(DataTable oldData)
         {
             OldData = oldData;
-            _dataHandler = handler;
         }
         
         public TransitRealtime.FeedMessage DownloadGTFS(string type)

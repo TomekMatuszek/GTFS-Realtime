@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using System.Data.SqlClient;
 using System.Configuration;
 using System.Threading;
+using Ninject;
 
 namespace GTFS_Realtime
 {
@@ -41,8 +42,10 @@ namespace GTFS_Realtime
 
         static DataTable Run(DataTable oldResults)
         {
-            var dataHandler = new DataHandler();
-            var tasks = new Tasks(oldResults, dataHandler);
+            IKernel kernel = new StandardKernel(new GTFSRealtimeModule());
+            var tasks = kernel.Get<Tasks>();
+
+            tasks.AddPreviousResults(oldResults);
             var vehiclePositions = tasks.DownloadGTFS("vehicle_positions");
             var tripUpdates = tasks.DownloadGTFS("trip_updates");
 
