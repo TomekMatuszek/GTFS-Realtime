@@ -11,17 +11,20 @@ using System.Configuration;
 using System.Data.SqlTypes;
 using System.Runtime.InteropServices;
 using TransitRealtime;
+using GTFS_Realtime.Interfaces;
 
 namespace GTFS_Realtime
 {
-    public class Tasks
+    public class RealtimeTasks : IRealtimeTasks
     {
-        DataTable OldData;
-        IDataHandler _dataHandler;
+        public DataTable OldData;
+        private IDataHandler _dataHandler;
+        private ILogger _logger;
 
-        public Tasks(IDataHandler handler)
+        public RealtimeTasks(IDataHandler handler, ILogger logger)
         {
             _dataHandler = handler;
+            _logger = logger;
         }
 
         public void AddPreviousResults(DataTable oldData)
@@ -44,7 +47,7 @@ namespace GTFS_Realtime
                 catch (Google.Protobuf.InvalidProtocolBufferException ex)
                 {
                     feed = null;
-                    NLogger.Log.Error($"{ex.GetType()} [{type}] | {ex}");
+                    _logger.LogError($"{ex.GetType()} [{type}] | {ex}");
                 }
                 response.Close();
                 responseStream.Close();

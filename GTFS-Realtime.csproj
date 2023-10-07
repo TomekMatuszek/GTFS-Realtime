@@ -295,9 +295,12 @@
   <ItemGroup>
     <Compile Include="DataHandler.cs" />
     <Compile Include="GeometrySnapper.cs" />
-    <Compile Include="GTFSRealtimeModule.cs" />
+    <Compile Include="GTFSRealtimeBindings.cs" />
+    <Compile Include="GTFSRealtimeService.cs" />
     <Compile Include="Interfaces\IDataHandler.cs" />
     <Compile Include="Interfaces\IGeometrySnapper.cs" />
+    <Compile Include="Interfaces\ILogger.cs" />
+    <Compile Include="Interfaces\IRealtimeTasks.cs" />
     <Compile Include="Interfaces\ITimeService.cs" />
     <Compile Include="NLogger.cs" />
     <Compile Include="Parameters.cs" />
@@ -305,7 +308,7 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="proto\GtfsRealtime.cs" />
     <Compile Include="SqlServerTypes\Loader.cs" />
-    <Compile Include="Tasks.cs" />
+    <Compile Include="RealtimeTasks.cs" />
     <Compile Include="TimeService.cs" />
   </ItemGroup>
   <ItemGroup>

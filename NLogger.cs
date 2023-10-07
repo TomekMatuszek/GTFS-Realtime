@@ -3,8 +3,23 @@ using NLog.Web;
 
 namespace GTFS_Realtime
 {
-    public static class NLogger
+    public class NLogger : ILogger
     {
-        public static Logger Log = NLogBuilder.ConfigureNLog("nlog.config").GetCurrentClassLogger();
+        public Logger _logger;
+
+        public NLogger()
+        {
+            _logger = NLogBuilder.ConfigureNLog("nlog.config").GetCurrentClassLogger();
+        }
+
+        public void Log(string message)
+        {
+            _logger.Info(message);
+        }
+
+        public void LogError(string message)
+        {
+            _logger.Error(message);
+        }
     }
 }
