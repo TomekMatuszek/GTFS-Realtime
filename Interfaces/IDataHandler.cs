@@ -11,10 +11,11 @@ namespace GTFS_Realtime
     {
         DataTable VehicleData { get; set; }
         DataTable TripsData { get; set; }
+        public void ClearDataTables();
         DataTable PrepareTable();
-        void FillTable(TransitRealtime.VehiclePosition obj);
-        void FillTable(TransitRealtime.VehiclePosition obj, DataRow prevRecord);
-        void FillTable(TransitRealtime.TripUpdate obj);
-        void FillTable(TransitRealtime.TripUpdate obj, DataRow prevRecord);
+        public void FillTable(TransitRealtime.VehiclePosition obj);
+        public void FillTable(TransitRealtime.VehiclePosition obj, DataRow prevRecord);
+        public void FillTable(TransitRealtime.TripUpdate obj);
+        public void FillTable(TransitRealtime.TripUpdate obj, DataRow prevRecord);
     }
 }

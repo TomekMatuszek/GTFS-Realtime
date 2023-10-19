@@ -8,7 +8,7 @@ namespace GTFS_Realtime
 {
     public interface ILogger
     {
-        void Log(string message);
-        void LogError(string message);
+        public void Log(string message);
+        public void LogError(string message);
     }
 }

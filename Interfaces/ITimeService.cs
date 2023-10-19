@@ -9,9 +9,9 @@ namespace GTFS_Realtime
 {
     public interface ITimeService
     {
-        DataRow ResolveDates(DataRow row, DataRow prevRecord, ulong timestamp);
-        DataRow ResolveDates(DataRow row, ulong timestamp);
-        DateTime RoundTime(DateTime dt, TimeSpan d, DateTime prev);
-        DateTime RoundTime(DateTime dt, TimeSpan d);
+        public DataRow ResolveDates(DataRow row, DataRow prevRecord, ulong timestamp);
+        public DataRow ResolveDates(DataRow row, ulong timestamp);
+        public DateTime RoundTime(DateTime dt, TimeSpan d, DateTime prev);
+        public DateTime RoundTime(DateTime dt, TimeSpan d);
     }
 }

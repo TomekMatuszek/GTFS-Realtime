@@ -9,6 +9,6 @@ namespace GTFS_Realtime
 {
     public interface IGeometrySnapper
     {
-        SqlGeography SnapGeometryToNetwork(float longitude, float latitude, int tolerance = 50);
+        public SqlGeography SnapGeometryToNetwork(float longitude, float latitude, int tolerance = 50);
     }
 }

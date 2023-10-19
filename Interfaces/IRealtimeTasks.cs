@@ -9,10 +9,10 @@ namespace GTFS_Realtime.Interfaces
 {
     public interface IRealtimeTasks
     {
-        void AddPreviousResults(DataTable oldData);
-        TransitRealtime.FeedMessage DownloadGTFS(string type);
-        void PrintData(DataTable data);
-        void PrepareData(out DataTable mergedResults, TransitRealtime.FeedMessage vehiclePositions, TransitRealtime.FeedMessage tripUpdates = null);
-        void UploadData(DataTable data, string table);
+        public void AddPreviousResults(DataTable oldData);
+        public TransitRealtime.FeedMessage? DownloadGTFS(string type);
+        public void PrintData(DataTable data);
+        public void PrepareData(out DataTable mergedResults, TransitRealtime.FeedMessage vehiclePositions, TransitRealtime.FeedMessage tripUpdates = null);
+        public void UploadData(DataTable data, string table);
     }
 }
