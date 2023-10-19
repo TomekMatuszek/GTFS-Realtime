@@ -17,7 +17,7 @@ namespace GTFS_Realtime
 {
     public class RealtimeTasks : IRealtimeTasks
     {
-        public DataTable OldData;
+        private DataTable OldData;
         private IDataHandler _dataHandler;
         private ILogger _logger;
 
@@ -25,21 +25,24 @@ namespace GTFS_Realtime
         {
             _dataHandler = handler;
             _logger = logger;
+            OldData = new DataTable();
         }
 
         public void AddPreviousResults(DataTable oldData)
         {
             OldData = oldData;
+            _dataHandler.ClearDataTables();
         }
         
-        public TransitRealtime.FeedMessage DownloadGTFS(string type)
+        public TransitRealtime.FeedMessage? DownloadGTFS(string type)
         {
-            var HttpRequest = (HttpWebRequest)WebRequest.Create($"https://www.ztm.poznan.pl/pl/dla-deweloperow/getGtfsRtFile/?file={type}.pb");
+            var url = $"https://www.ztm.poznan.pl/pl/dla-deweloperow/getGtfsRtFile/?file={type}.pb";
+            var HttpRequest = (HttpWebRequest)WebRequest.Create(url);
             HttpRequest.KeepAlive = false;
             using (var response = (HttpWebResponse)HttpRequest.GetResponse())
             {
                 var responseStream = response.GetResponseStream();
-                FeedMessage feed;
+                FeedMessage? feed;
                 try
                 {
                     feed = TransitRealtime.FeedMessage.Parser.ParseFrom(responseStream);
@@ -105,28 +108,14 @@ namespace GTFS_Realtime
             mergedResults = dataMerged;
         }
 
-        public void UploadData(DataTable data, string table)
-        {
-            using (var cnn = new SqlConnection(ConfigurationManager.ConnectionStrings["ConnectionString"].ConnectionString))
-            {
-                cnn.Open();
-                using (var bulkcopy = new SqlBulkCopy(cnn))
-                {
-                    bulkcopy.DestinationTableName = table;
-                    bulkcopy.WriteToServer(data);
-                    bulkcopy.Close();
-                }
-                cnn.Close();
-            }
-        }
-
         private void PrepareVehicles(TransitRealtime.FeedMessage vehiclePositions, out DataTable vehicleData)
         {
             for (int i = 0; i < vehiclePositions.Entity.Count; i++)
             {
                 try
                 {
-                    _dataHandler.FillTable(vehiclePositions.Entity[i].Vehicle, OldData.Select($"trip_id = '{vehiclePositions.Entity[i].Vehicle.Trip.TripId}'")[0]);
+                    var oldRecord = OldData.Select($"trip_id = '{vehiclePositions.Entity[i].Vehicle.Trip.TripId}'")[0];
+                    _dataHandler.FillTable(vehiclePositions.Entity[i].Vehicle, oldRecord);
                 }
                 catch (EvaluateException)
                 {
@@ -146,7 +135,8 @@ namespace GTFS_Realtime
             {
                 try
                 {
-                    _dataHandler.FillTable(tripUpdates.Entity[j].TripUpdate, OldData.Select($"trip_id = '{tripUpdates.Entity[j].TripUpdate.Trip.TripId}'")[0]);
+                    var oldRecord = OldData.Select($"trip_id = '{tripUpdates.Entity[j].TripUpdate.Trip.TripId}'")[0];
+                    _dataHandler.FillTable(tripUpdates.Entity[j].TripUpdate, oldRecord);
                 }
                 catch (EvaluateException)
                 {
@@ -158,6 +148,21 @@ namespace GTFS_Realtime
                 }
             }
             tripsData = _dataHandler.TripsData;
+        }
+
+        public void UploadData(DataTable data, string table)
+        {
+            using (var cnn = new SqlConnection(ConfigurationManager.ConnectionStrings["ConnectionString"].ConnectionString))
+            {
+                cnn.Open();
+                using (var bulkcopy = new SqlBulkCopy(cnn))
+                {
+                    bulkcopy.DestinationTableName = table;
+                    bulkcopy.WriteToServer(data);
+                    bulkcopy.Close();
+                }
+                cnn.Close();
+            }
         }
     }
 }

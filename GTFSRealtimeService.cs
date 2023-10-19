@@ -55,9 +55,10 @@ namespace GTFS_Realtime
                 try
                 {
                     _tasks.PrepareData(out results, vehiclePositions, tripUpdates);
-                    Console.WriteLine($"Vehicles: {results.Rows.Count}");
 
                     _tasks.PrintData(results);
+                    Console.WriteLine($"Vehicles: {results.Rows.Count}");
+
                     _tasks.UploadData(results, "realtime");
                 }
                 catch (InvalidOperationException ex)
