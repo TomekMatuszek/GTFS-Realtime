@@ -9,7 +9,6 @@ using System.Data.SqlTypes;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using System.Web.UI.WebControls;
 
 namespace GTFS_Realtime
 {
@@ -45,6 +44,12 @@ namespace GTFS_Realtime
         {
             _timeService = timeService;
             _geometrySnapper = geometrySnapper;
+            VehicleData = PrepareTable();
+            TripsData = PrepareTable();
+        }
+
+        public void ClearDataTables()
+        {
             VehicleData = PrepareTable();
             TripsData = PrepareTable();
         }
